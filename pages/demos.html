@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demonstrations — Argon2 | Password Hashing Lab</title>
+<link rel="stylesheet" href="../css/vlab.css">
+</head>
+<body class="vlab-body">
+
+<header class="vlab-topbar">
+  <a class="vlab-logo" href="../index.html">
+    <div>
+      <span class="vlab-logo-title">Password Hashing Lab</span>
+      <span class="vlab-logo-sub">Cryptography &amp; System Security · Virtual Laboratory</span>
+    </div>
+  </a>
+  <nav class="vlab-topnav">
+    <a href="../index.html">Home</a>
+    <a href="theory.html">Theory</a>
+    <a href="simulation.html">Simulation</a>
+  </nav>
+</header>
+
+<div class="vlab-breadcrumb">
+  <a href="../index.html">Password Hashing Lab</a><span class="sep">›</span>
+  <a href="../index.html#experiments">Argon2</a><span class="sep">›</span><span class="here">Demonstrations</span>
+</div>
+
+<div class="vlab-layout">
+  <aside class="vlab-sidebar">
+    <div class="vlab-side-logo">EXPERIMENT 01<br>ARGON2 (ARGON2ID)</div>
+    <a href="../index.html">Introduction</a>
+    <a href="theory.html">Theory</a>
+    <a href="objective.html">Objective</a>
+    <a href="procedure.html">Procedure to be followed</a>
+    <a href="simulation.html">Simulation</a>
+    <a href="demos.html" class="active">Demonstrations</a>
+    <a href="assignment.html">Assignment</a>
+    <a href="references.html">References</a>
+    <a href="feedback.html">Feedback</a>
+  </aside>
+
+  <main class="vlab-content">
+    <h1>Demonstrations</h1>
+    <p>Three guided demonstrations, each running <b>real Argon2id hashing in your browser</b>.
+    Read the story for each demo, click Run, and record the numbers — you will cite them in the
+    <a href="assignment.html">Assignment</a>.</p>
+
+    <section id="demo-salt">
+      <h2>Demo 1 — Salt &amp; rainbow tables</h2>
+      <p>Three users — <b>alice, bob, carol</b> — all chose the same password. Run the demo twice:
+      first with a <b>fixed "salt"</b> (emulating an unsalted database — Argon2 itself always salts;
+      this shows <i>what would happen if it did not</i>), then with a unique random salt per user.</p>
+      <div class="form-grid">
+        <label for="d1-password">Shared password</label>
+        <input type="text" id="d1-password" value="hunter2" spellcheck="false">
+        <label></label>
+        <button class="btn" id="d1-run">Run Demo 1</button>
+      </div>
+      <div class="callout warn" id="d1-error" style="display:none"></div>
+      <h3>Table A — fixed salt ("unsalted" behaviour)</h3>
+      <table class="vlab-table"><thead><tr><th>User</th><th>Salt (first bytes)</th><th>Hash (first bytes)</th><th>vs alice</th></tr></thead><tbody id="d1-table-u"></tbody></table>
+      <div class="callout info" id="d1-verdict-u" style="display:none"></div>
+      <h3>Table B — unique random salt per user</h3>
+      <table class="vlab-table"><thead><tr><th>User</th><th>Salt (first bytes)</th><th>Hash (first bytes)</th><th>vs alice</th></tr></thead><tbody id="d1-table-s"></tbody></table>
+      <div class="callout info" id="d1-verdict-s" style="display:none"></div>
+    </section>
+
+    <section id="demo-param">
+      <h2>Demo 2 — Cost-parameter trade-offs</h2>
+      <p>The same password hashed with four parameter presets. Watch both columns: <b>time</b>
+      (what the user feels at login) and <b>memory</b> (what the attacker's hardware must buy).</p>
+      <div class="form-grid">
+        <label for="d2-password">Password</label>
+        <input type="text" id="d2-password" value="correct horse battery staple" spellcheck="false">
+        <label></label>
+        <button class="btn" id="d2-run">Run Demo 2</button>
+      </div>
+      <div class="callout warn" id="d2-error" style="display:none"></div>
+      <table class="vlab-table">
+        <thead><tr><th>Preset</th><th>m (KiB)</th><th>t</th><th>p</th><th>Memory</th><th>Time</th></tr></thead>
+        <tbody id="d2-results"></tbody>
+      </table>
+      <div class="callout info">
+        <b>Expected pattern:</b> (a) weak — sub-millisecond, 8 KiB; (b) 256 MiB — memory dominates;
+        (c) OWASP interactive minimum — a few tens of ms; (d) p=4 spreads work over 4 lanes
+        (threads) but needs a bigger m to keep the same security.
+      </div>
+    </section>
+
+    <section id="demo-bench">
+      <h2>Demo 3 — Benchmark: Argon2id vs PBKDF2</h2>
+      <p>One guess per configuration, timed. Throughput ≈ 1000 / milliseconds. Multiply by a
+      botnet or a rack of GPUs to see why the <i>absolute</i> number matters less than the
+      <b>hardware cost per guess</b>: PBKDF2 needs only arithmetic, Argon2id needs
+      arithmetic <b>+ 19–64 MiB of fast RAM per concurrent guess</b>.</p>
+      <button class="btn" id="d3-run">Run Demo 3</button>
+      <div class="callout warn" id="d3-error" style="display:none"></div>
+      <table class="vlab-table">
+        <thead><tr><th>Configuration</th><th>Avg time (ms)</th><th>Hashes / second</th><th>Memory</th></tr></thead>
+        <tbody id="d3-results"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<footer class="vlab-footer">
+  <div class="vlab-footer-cols">
+    <div>
+      <h4>Community Links</h4>
+      <ul>
+        <li><a href="https://password-hashing.net" target="_blank" rel="noopener">Argon2 — Password Hashing Competition</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9106.html" target="_blank" rel="noopener">RFC 9106 — Argon2 Specification</a></li>
+        <li><a href="https://owasp.org/www-community/password-storage" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Lab Links</h4>
+      <ul>
+        <li><a href="theory.html">Theory</a></li>
+        <li><a href="procedure.html">Procedure</a></li>
+        <li><a href="simulation.html">Simulation</a></li>
+        <li><a href="assignment.html">Assignment</a></li>
+        <li><a href="feedback.html">Feedback</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p style="margin:0">Cryptography &amp; System Security Lab<br>
+      Department of Computer Engineering</p>
+    </div>
+  </div>
+  <div class="vlab-footer-bottom">
+    Virtual Cryptography Laboratory · Static learning portal · Educational use only.
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/hash-wasm@4.11.0/dist/argon2.umd.min.js"></script>
+<script src="../js/argon2-lab.js"></script>
+</body>
+</html>

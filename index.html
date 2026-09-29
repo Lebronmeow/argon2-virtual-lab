@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argon2 Virtual Lab | Password Hashing Laboratory</title>
+<link rel="stylesheet" href="css/vlab.css">
+</head>
+<body class="vlab-body">
+
+<header class="vlab-topbar">
+  <a class="vlab-logo" href="index.html">
+    <div>
+      <span class="vlab-logo-title">Password Hashing Lab</span>
+      <span class="vlab-logo-sub">Cryptography &amp; System Security · Virtual Laboratory</span>
+    </div>
+  </a>
+  <nav class="vlab-topnav">
+    <a href="index.html">Home</a>
+    <a href="pages/theory.html">Theory</a>
+    <a href="pages/simulation.html">Simulation</a>
+    <a href="pages/assignment.html">Assignment</a>
+  </nav>
+</header>
+
+<div class="vlab-breadcrumb">
+  <a href="index.html">Password Hashing Lab</a><span class="sep">›</span><span class="here">Argon2</span>
+</div>
+
+<div class="vlab-layout">
+  <aside class="vlab-sidebar">
+    <div class="vlab-side-logo">EXPERIMENT 01<br>ARGON2 (ARGON2ID)</div>
+    <a href="index.html">Introduction</a>
+    <a href="index.html#objective">Objective</a>
+    <a href="index.html#experiments">List of experiments</a>
+    <a href="index.html#audience">Target Audience</a>
+    <a href="index.html#alignment">Course Alignment</a>
+    <a href="pages/demos.html">Demonstrations</a>
+    <a href="pages/feedback.html">Feedback</a>
+  </aside>
+
+  <main class="vlab-content">
+
+    <h1>Argon2 — Memory-Hard Password Hashing</h1>
+
+    <section id="introduction">
+      <p>Welcome to the <b>Argon2 Virtual Lab</b>. This laboratory provides an interactive experiment on
+      <b>Argon2</b>, the winner of the <i>Password Hashing Competition</i> (2015) and the current
+      state-of-the-art for password storage. Argon2 is a <b>memory-hard</b> key derivation function:
+      unlike fast hashes such as MD5 or SHA-256, it is deliberately designed to consume large amounts
+      of memory, which makes massively parallel hardware attacks (GPUs, ASICs) economically
+      impractical.</p>
+
+      <p>The lab offers three variants of the function — <b>Argon2d</b> (data-dependent addressing,
+      maximum GPU resistance), <b>Argon2i</b> (data-independent addressing, side-channel safe) and
+      <b>Argon2id</b> (hybrid, recommended for password storage) — and lets you experiment with all of
+      them in the browser: tune the cost parameters, watch the internal memory-fill process, verify
+      how salting defeats rainbow tables, and benchmark real hashing times.</p>
+    </section>
+
+    <section id="objective">
+      <h2>Objective</h2>
+      <p>After performing this experiment, the student will be able to:</p>
+      <ol>
+        <li><b>Explain</b> why plain cryptographic hashes are unsuitable for password storage, and
+            how offline cracking exploits their speed.</li>
+        <li><b>Describe</b> the internal design of Argon2: theBlake2b compression function,
+            memory blocks, lanes, passes, and the two addressing modes (data-dependent and
+            data-independent).</li>
+        <li><b>Configure</b> the three cost parameters — memory cost <code>m</code>,
+            time cost (iterations) <code>t</code> and parallelism <code>p</code> — and reason about
+            their security / usability trade-off.</li>
+        <li><b>Demonstrate</b> the role of the salt and compare a salted vs. unsalted pipeline against
+            a simulated rainbow-table attack.</li>
+        <li><b>Evaluate</b> real-world performance by benchmarking Argon2id against PBKDF2 and
+            selecting parameters for a target hashing time (e.g. OWASP's ≈19 MiB / 2 iterations / 1 lane
+            minimum or the 600 ms interactive target).</li>
+      </ol>
+    </section>
+
+    <section id="experiments">
+      <h2>List of Experiments</h2>
+      <p>This lab currently hosts one detailed experiment built on the classic Virtual Labs
+      <i>Aim → Theory → Objective → Procedure → Simulation → Assignment → References → Feedback</i>
+      structure. Further experiments in the password-security family (Bcrypt, Scrypt, PBKDF2
+      comparison) can be added in the same template.</p>
+
+      <table class="vlab-table">
+        <tr><th>#</th><th>Experiment</th><th>Category</th><th>Difficulty</th><th></th></tr>
+        <tr>
+          <td>1</td>
+          <td><b>Argon2 — Memory-Hard Password Hashing</b><br>
+              <span class="mono" style="font-size:12.5px">argon2id · argon2i · argon2d · KDF · salt · cost parameters</span></td>
+          <td>Password Security</td>
+          <td>Intermediate</td>
+          <td><a class="btn small" href="pages/theory.html">Open Lab →</a></td>
+        </tr>
+      </table>
+    </section>
+
+    <section id="audience">
+      <h2>Target Audience</h2>
+      <ul>
+        <li><b>Undergraduate students</b> — courses on Cryptography and System Security (e.g.
+            Mumbai University TE COMPS <i>CSS</i>, CSE/IT curricula covering password hardening and
+            key derivation functions).</li>
+        <li><b>Postgraduate scholars</b> — studying memory-hard functions, side-channel
+            countermeasures and password-cracking resistance.</li>
+        <li><b>Faculty &amp; evaluators</b> — demonstrating practical secure password storage and the
+            economics of brute-force attacks.</li>
+        <li><b>Practicing developers</b> — anyone who stores user passwords and must choose real
+            Argon2 parameters.</li>
+      </ul>
+    </section>
+
+    <section id="alignment">
+      <h2>Course Alignment</h2>
+      <table class="vlab-table">
+        <tr><th>Module</th><th>Course Topic</th><th>Mapped Lab Activity</th></tr>
+        <tr><td>Module — User Authentication</td><td>Password-based authentication, salted hashing</td><td>Procedure §3, Simulation (salt &amp; rainbow table demo)</td></tr>
+        <tr><td>Module — Password Hardening</td><td>Key derivation functions, memory-hardness, GPU/ASIC resistance</td><td>Theory, Simulation (cost-parameter tuning)</td></tr>
+        <tr><td>Module — Protocol Security</td><td>Storage of verification data, PHC string format</td><td>Simulation (encoded hash output), Assignment Q3–Q4</td></tr>
+      </table>
+    </section>
+
+    <section id="quickstart">
+      <h2>Quick Start</h2>
+      <p>This is a fully static site — no backend, no installation. Either open the pages directly,
+      or serve the folder with any static server:</p>
+      <pre># macOS / Linux
+python3 -m http.server 8000
+
+# Windows (PowerShell)
+py -m http.server 8000</pre>
+      <p>Then open <span class="mono">http://localhost:8000</span> and navigate to
+      <a href="pages/simulation.html">the Simulation</a>.</p>
+      <div class="callout info"><b>Note:</b> the simulation uses the <span class="mono">hash-wasm</span>
+      library (loaded from a CDN) to perform genuine Argon2id/i/d hashing in your browser. An internet
+      connection is required for the hashing library; everything else works offline.</div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="vlab-footer">
+  <div class="vlab-footer-cols">
+    <div>
+      <h4>Community Links</h4>
+      <ul>
+        <li><a href="https://password-hashing.net" target="_blank" rel="noopener">Argon2 — Password Hashing Competition</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9106.html" target="_blank" rel="noopener">RFC 9106 — Argon2 Specification</a></li>
+        <li><a href="https://owasp.org/www-community/password-storage" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Lab Links</h4>
+      <ul>
+        <li><a href="pages/theory.html">Theory</a></li>
+        <li><a href="pages/procedure.html">Procedure</a></li>
+        <li><a href="pages/simulation.html">Simulation</a></li>
+        <li><a href="pages/assignment.html">Assignment</a></li>
+        <li><a href="pages/feedback.html">Feedback</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p style="margin:0">Cryptography &amp; System Security Lab<br>
+      Department of Computer Engineering</p>
+    </div>
+  </div>
+  <div class="vlab-footer-bottom">
+    Virtual Cryptography Laboratory · Static learning portal · Educational use only — never use lab code to hash real user passwords without review.
+  </div>
+</footer>
+
+</body>
+</html>

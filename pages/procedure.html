@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procedure — Argon2 | Password Hashing Lab</title>
+<link rel="stylesheet" href="../css/vlab.css">
+</head>
+<body class="vlab-body">
+
+<header class="vlab-topbar">
+  <a class="vlab-logo" href="../index.html">
+    <div>
+      <span class="vlab-logo-title">Password Hashing Lab</span>
+      <span class="vlab-logo-sub">Cryptography &amp; System Security · Virtual Laboratory</span>
+    </div>
+  </a>
+  <nav class="vlab-topnav">
+    <a href="../index.html">Home</a>
+    <a href="theory.html">Theory</a>
+    <a href="simulation.html">Simulation</a>
+  </nav>
+</header>
+
+<div class="vlab-breadcrumb">
+  <a href="../index.html">Password Hashing Lab</a><span class="sep">›</span>
+  <a href="../index.html#experiments">Argon2</a><span class="sep">›</span><span class="here">Procedure</span>
+</div>
+
+<div class="vlab-layout">
+  <aside class="vlab-sidebar">
+    <div class="vlab-side-logo">EXPERIMENT 01<br>ARGON2 (ARGON2ID)</div>
+    <a href="../index.html">Introduction</a>
+    <a href="theory.html">Theory</a>
+    <a href="objective.html">Objective</a>
+    <a href="procedure.html" class="active">Procedure to be followed</a>
+    <a href="simulation.html">Simulation</a>
+    <a href="demos.html">Demonstrations</a>
+    <a href="assignment.html">Assignment</a>
+    <a href="references.html">References</a>
+    <a href="feedback.html">Feedback</a>
+  </aside>
+
+  <main class="vlab-content">
+    <h1>Procedure to be followed</h1>
+    <p>Perform the steps in order. Each step uses the <a href="simulation.html">Simulation</a>
+    page (tabs: Hasher, Verify, Memory Grid, Benchmark) or a
+    <a href="demos.html">Demonstration</a>.</p>
+
+    <h2>Step 1 — Hash a password with recommended parameters</h2>
+    <ol>
+      <li>Open the <a href="simulation.html">Simulation</a> page, <b>Hasher</b> tab.</li>
+      <li>Enter a password such as <span class="mono">hunter2</span>. Keep Salt on <i>random</i>,
+          m = 19456 KiB, t = 2, p = 1, variant Argon2id, tag length 32 bytes.</li>
+      <li>Click <b>Compute Hash</b>. Record the PHC string, elapsed time, and memory used
+          (m KiB ≈ m/1024 MiB of RAM).</li>
+      <li>Click <b>Compute Hash</b> again for the same password. The hash is <b>different</b> —
+          the salt is regenerated each run. This is expected; verification uses the salt stored in
+          the PHC string.</li>
+    </ol>
+
+    <h2>Step 2 — Verify a hash (login flow)</h2>
+    <ol>
+      <li>Switch to the <b>Verify</b> tab and paste the PHC string from Step 1.</li>
+      <li>Enter the correct password → status <b>MATCH</b>. Enter a wrong password →
+          <b>NO MATCH</b>.</li>
+      <li>Observe that both attempts take approximately the <b>same time</b> — the work factor is
+          fixed by the stored parameters, so there is no timing oracle on the password.</li>
+    </ol>
+
+    <h2>Step 3 — Salt &amp; rainbow tables (Demo 1)</h2>
+    <ol>
+      <li>Open <a href="demos.html#demo-salt">Demo 1 — Salt &amp; Rainbow tables</a>.</li>
+      <li>Hash one password for 3 users, unsalted: the digests are identical, so one precomputed
+          rainbow-table row "cracks" all three accounts at once.</li>
+      <li>Now enable unique per-user salts: the digests differ, precomputed tables become useless,
+          and the attacker must re-hash guesses separately for every user.</li>
+ antigone    </ol>
+
+    <h2>Step 4 — Tune the cost parameters (Demo 2)</h2>
+    <ol>
+      <li>Open <a href="demos.html#demo-param">Demo 2 — Cost-parameter trade-offs</a>.</li>
+      <li>Measure with (a) m = 8 KiB, t = 1, p = 1; (b) m = 262144 KiB (256 MiB), t = 1, p = 1;
+          (c) m = 19456, t = 2, p = 1 (OWASP interactive minimum); (d) 19456, t = 2, p = 4.</li>
+      <li>Note how wall-time and memory scale with m and t, and how p spreads work over lanes
+          (threads).</li>
+      <li>1 GiB settings are not practical in-browser; servers typically use 19–64 MiB for
+          interactive login — the big-memory figures describe the <i>attacker's</i> hardware cost,
+          not the defender's.</li>
+    </ol>
+
+    <h2>Step 5 — Benchmark Argon2 vs PBKDF2 (Demo 3)</h2>
+    <ol>
+      <li>Open <a href="demos.html#demo-bench">Demo 3 — Benchmark</a>.</li>
+      <li>Run the three profiles: <b>weak</b> (8 MiB, t=1), <b>interactive</b> (19 MiB, t=2),
+          <b>sensitive</b> (64 MiB, t=3), plus PBKDF2-SHA-256 at 600 000 iterations.</li>
+      <li>Record hashes/second for each. Argon2id burns <b>memory</b> per guess; PBKDF2 burns only
+          <b>throughput</b>. Use this data in Assignment Q7–Q8.</li>
+    </ol>
+
+    <h2>Step 6 — Assignment</h2>
+    <ol>
+      <li>Attempt <a href="assignment.html">Assignment</a> Q1–Q8.</li>
+      <li>Support every claim with the demo/simulation step that showed it, e.g.:
+          <span class="mono">"Demo 2(b): 256 MiB took X ms → attacker RAM cost scales linearly with m"</span>.</li>
+    </ol>
+  </main>
+</div>
+
+<footer class="vlab-footer">
+  <div class="vlab-footer-cols">
+    <div>
+      <h4>Community Links</h4>
+      <ul>
+        <li><a href="https://password-hashing.net" target="_blank" rel="noopener">Argon2 — Password Hashing Competition</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9106.html" target="_blank" rel="noopener">RFC 9106 — Argon2 Specification</a></li>
+        <li><a href="https://owasp.org/www-community/password-storage" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Lab Links</h4>
+      <ul>
+        <li><a href="theory.html">Theory</a></li>
+        <li><a href="procedure.html">Procedure</a></li>
+        <li><a href="simulation.html">Simulation</a></li>
+        <li><a href="assignment.html">Assignment</a></li>
+        <li><a href="feedback.html">Feedback</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p style="margin:0">Cryptography &amp; System Security Lab<br>
+      Department of Computer Engineering</p>
+    </div>
+  </div>
+  <div class="vlab-footer-bottom">
+    Virtual Cryptography Laboratory · Static learning portal · Educational use only.
+  </div>
+</footer>
+
+</body>
+</html>

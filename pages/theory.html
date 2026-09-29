@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theory — Argon2 | Password Hashing Lab</title>
+<link rel="stylesheet" href="../css/vlab.css">
+</head>
+<body class="vlab-body">
+
+<header class="vlab-topbar">
+  <a class="vlab-logo" href="../index.html">
+    <div>
+      <span class="vlab-logo-title">Password Hashing Lab</span>
+      <span class="vlab-logo-sub">Cryptography &amp; System Security · Virtual Laboratory</span>
+    </div>
+  </a>
+  <nav class="vlab-topnav">
+    <a href="../index.html">Home</a>
+    <a href="theory.html">Theory</a>
+    <a href="simulation.html">Simulation</a>
+    <a href="assignment.html">Assignment</a>
+  </nav>
+</header>
+
+<div class="vlab-breadcrumb">
+  <a href="../index.html">Password Hashing Lab</a><span class="sep">›</span>
+  <a href="../index.html#experiments">Argon2</a><span class="sep">›</span><span class="here">Theory</span>
+</div>
+
+<div class="vlab-layout">
+  <aside class="vlab-sidebar">
+    <div class="vlab-side-logo">EXPERIMENT 01<br>ARGON2 (ARGON2ID)</div>
+    <a href="../index.html">Introduction</a>
+    <a href="theory.html" class="active">Theory</a>
+    <a href="objective.html">Objective</a>
+    <a href="procedure.html">Procedure</a>
+    <a href="simulation.html">Simulation</a>
+    <a href="demos.html">Demonstrations</a>
+    <a href="assignment.html">Assignment</a>
+    <a href="references.html">References</a>
+    <a href="feedback.html">Feedback</a>
+  </aside>
+
+  <main class="vlab-content">
+    <h1>Theory</h1>
+
+    <h2>1. Why fast hashes fail for passwords</h2>
+    <p>A cryptographic hash such as SHA-256 is designed to be <i>fast</i>: a modern CPU computes
+    billions of SHA-256 digests per second, and a GPU billions more. When a password database is
+    stolen, the attacker does not need to break the hash function — they simply <b>guess</b> passwords,
+    hash each guess, and compare. Every additional billion guesses per second is free speed for the
+    attacker.</p>
+    <p>Attacks against stolen password files are <b>offline</b>: the defender cannot rate-limit them.
+    The only defence is to make each single guess <i>expensive</i>. That is the job of a
+    <b>password hashing scheme</b> / key derivation function (KDF).</p>
+
+    <table class="vlab-table">
+      <tr><th>Scheme</th><th>Year</th><th>Cost knob</th><th>Hardware resistance</th></tr>
+      <tr><td>MD5 / SHA-1 / SHA-256 (plain)</td><td>1992–2001</td><td>none</td><td>none — attacker hashes at full CPU/GPU speed</td></tr>
+      <tr><td>MD5-crypt / SHA-crypt (UNIX)</td><td>1994–2007</td><td>iterations only</td><td>weak — still tiny memory, GPU-friendly</td></tr>
+      <tr><td>PBKDF2</td><td>2000</td><td>iterations only</td><td>weak — ASICs/GPUs do it efficiently</td></tr>
+      <tr><td>bcrypt</td><td>1999</td><td>iterations + small constant memory (4 KB)</td><td>moderate — limits GPU parallelism</td></tr>
+      <tr><td>scrypt</td><td>2009</td><td>iterations + memory</td><td>good — but harder to tune</td></tr>
+      <tr><td><b>Argon2</b></td><td><b>2015</b></td><td><b>iterations + memory + parallelism</b></td><td><b>best — winner of the Password Hashing Competition</b></td></tr>
+    </table>
+
+    <h2>2. The Argon2 design (RFC 9106)</h2>
+    <p>Argon2 was designed by Alex Biryukov, Daniel Dinu and Dmitry Khovratovich (University of
+    Luxembourg) and won the <i>Password Hashing Competition</i> in 2015. It is standardised as
+    <b>RFC 9106</b>. Its central idea is <b>memory hardness</b>: the function fills a large internal
+    memory array of <i>m</i> blocks (each block is 1024 bytes = 8 × 128-byte "rows"), and every new
+    block depends on previously written blocks. An attacker who wants to compute many hashes in
+    parallel must therefore also buy the memory for each — memory, unlike arithmetic logic, is not
+    cheap to scale on a GPU/ASIC die.</p>
+
+    <h3>2.1 Inputs</h3>
+    <ul>
+      <li><b>Message P</b> — the password (bytes).</li>
+      <li><b>Nonce S</b> — a 16-byte salt, <i>unique per password</i>, stored alongside the hash.</li>
+      <li><b>Secret key K</b> (optional) — a "pepper", e.g. held in a config file not in the DB.</li>
+      <li><b>Associated data X</b> (optional) and <b>tag length T</b>.</li>
+      <li><b>Cost parameters:</b> memory size <i>m</i> (in KiB), number of iterations/passes
+          <i>t</i> ≥ 1, parallelism/lanes <i>p</i> ≤ 4.</li>
+      <li><b>Type</b>: Argon2d, Argon2i or Argon2id.</li>
+    </ul>
+
+    <h3>2.2 Internal structure</h3>
+    <ol>
+      <li><b>Initial hash H₀.</b> All inputs (password, salt, parameters) are hashed into a 64-byte
+          initial hash H₀ with BLAKE2b. H₀ determines the first two blocks of every lane.</li>
+      <li><b>Memory allocation.</b> Allocate <i>m′ = 4·p·⌊m/(4p)⌋</i> blocks — a multiple of 4·p so
+          every lane gets an equal slice. In this lab the visualiser shows this array directly.</li>
+      <li><b>Fill pass.</b> For each pass <i>r</i> = 1…t, and each lane, each slice, each segment:
+          compute new blocks. Block <i>i</i> is computed from the <b>reference block J₁</b>, the
+          <b>previous block</b>, and (from the second slice onward) a second reference <b>J₂</b>.
+          The compression function <i>G</i> (built on BLAKE2b rounds mixed with a
+          permutation-based mixing layer) combines them.</li>
+      <li><b>Addressing — the three types:</b>
+        <ul>
+          <li><b>Argon2d</b> — reference blocks are chosen <i>from the data already in memory</i>
+              (data-dependent). Fastest against GPUs and side-channel-<i>unsafe</i>. Best for
+              non-password uses and cryptocurrencies.</li>
+          <li><b>Argon2i</b> — reference positions come from a <i>pseudo-random address
+              generator</i> independent of memory contents (data-independent). Side-channel safe,
+              but needs more passes for full memory coverage.</li>
+          <li><b>Argon2id</b> — hybrid: the <b>first half-pass uses Argon2i addressing, the rest
+              Argon2d</b>. Gets side-channel resistance <i>and</i> GPU resistance. <b>This is the
+              variant recommended for password storage.</b></li>
+        </ul></li>
+      <li><b>Finalisation.</b> XOR the last block of each lane, hash with BLAKE2b to produce the
+          <i>T</i>-byte tag.</li>
+    </ol>
+
+    <h3>2.3 Memory visualisation</h3>
+    <p>In the <a href="simulation.html">Simulation</a>, the "Memory Grid" tab animates this fill
+    process on a small array: grey cells are unwritten blocks, blue cells are filled (darker for
+    later passes), orange is the block being computed, and yellow are the reference blocks feeding
+    it. For Argon2i/id you can watch the address sequence jump pseudo-randomly; for Argon2d the
+    references depend on the data being written.</p>
+
+    <h2>3. The PHC string format</h2>
+    <p>Argon2 output is conventionally stored as a self-describing <b>PHC string</b> that embeds the
+    algorithm, version, parameters, salt and tag — so hashes can be verified years later and
+    parameters can be upgraded transparently:</p>
+
+    <pre>$argon2id$v=19$m=19456,t=2,p=1$<b>&lt;base64 salt&gt;</b>$<b>&lt;base64 tag&gt;</b>
+   │        │    │        │              │
+   │        │    │        │              └─ 32-byte tag (b64, no padding)
+   │        │    │        └─ 16-byte salt (b64, no padding)
+   │        │    └─ memory KiB, iterations, parallelism
+   │        └─ version 1.3 (0x13)
+   └─ variant (argon2d / argon2i / argon2id)</pre>
+
+    <div class="callout info"><b>Reading example:</b> <span class="mono">$argon2id$v=19$m=19456,t=2,p=1$…</span>
+    means Argon2id, version 1.3, 19 MiB of memory, 2 passes, 1 lane — the current
+    <b>OWASP-recommended minimum</b> for interactive login (roughly 19 MiB, t=2, p=1).</div>
+
+    <h2>4. Choosing cost parameters</h2>
+    <p>Three knobs trade security against user-perceived latency:</p>
+    <table class="vlab-table">
+      <tr><th>Parameter</th><th>Meaning</th><th>Effect of increasing it</th></tr>
+      <tr><td><b>m</b> (memory cost)</td><td>RAM used, in KiB</td><td>Raises the hardware cost of the attacker <b>linearly</b> — the strongest knob</td></tr>
+      <tr><td><b>t</b> (time cost)</td><td>Passes over memory</td><td>Raises CPU time (and attacker's energy cost); also improves Argon2i coverage</td></tr>
+      <tr><td><b>p</b> (parallelism)</td><td>Lanes / threads</td><td>Uses multiple cores; with fixed m and t it slightly <i>weakens</i> per-guess cost, but enables m to be raised for the same wall time</td></tr>
+    </table>
+    <p>Practical recipe (RFC 9106 §4 and OWASP): pick the maximum <b>m</b> your server can afford
+    (OWASP: ≥ 19 MiB), then choose <b>t</b> so that one hash takes the target time (≈ 0.5–1 s for
+    interactive login). Use <b>p = 4</b> only if the server has idle cores. Measure — never trust
+    defaults. The Simulation's <b>Benchmark</b> tab does exactly this measurement in your browser.</p>
+
+    <h2>5. Salting &amp; rainbow tables</h2>
+    <p>A <b>rainbow table</b> is a precomputed dictionary hash → password. It works only when every
+    user's hash was computed the same way — i.e. unsalted. A <b>salt</b> is a random value mixed
+    into the input; because it is unique per password, two users with the password
+    <span class="mono">hunter2</span> get entirely different digests, and a table built for one salt
+    is useless for another. Salting does <b>not</b> slow a targeted attack on one account (that is
+    what memory-hardness is for) — it defeats <i>amortised</i> attacks across many accounts.
+    The Simulation's <b>Salt &amp; Rainbow</b> tab demonstrates this.</p>
+
+    <h2>6. Security analysis</h2>
+    <ul>
+      <li><b>Tradeoff attacks</b>: an attacker can reduce memory and pay with more computation
+          (e.g. 1/3 memory ≈ 3× more time for Argon2d/i at moderate depth). This is the reason to
+          keep raising <i>m</i> over the years rather than relying on <i>t</i>.</li>
+      <li><b>Side channels</b>: Argon2d leaks reference positions through cache timing — use
+          Argon2id for passwords.</li>
+      <li><b>GPU resistance</b>: at m = 1 GiB a GPU with ~10 GB of RAM can run only ~10 guesses
+          concurrently, versus millions of SHA-256s — this is the economic core of memory hardness.</li>
+      <li><b>Known cryptanalysis</b>: reduced-round BLAKE2b-based G has known distinguishers, but
+          the full function has no practical attacks; RFC 9106 recommends ≥ 3 passes when using
+          Argon2i, and Argon2id with t ≥ 2 otherwise.</li>
+    </ul>
+
+    <h2>7. Practical applications</h2>
+    <ul>
+      <li><b>Password storage</b> in web applications (the primary use; format above is what
+          frameworks like Django, PHP's <span class="mono">password_hash()</span>, and
+          <span class="mono">libsodium</span> emit).</li>
+      <li><b>Key derivation</b> for disk/volume encryption and for deriving AES keys from
+          passphrases.</li>
+      <li><b>Proof-of-work</b> and cryptocurrency (Argon2d chosen by some chains for its
+          time–memory tradeoff characteristics).</li>
+      <li><b>Entity authentication</b> — hardening of password-based login and of PAKE-style
+          protocols.</li>
+    </ul>
+  </main>
+</div>
+
+<footer class="vlab-footer">
+  <div class="vlab-footer-cols">
+    <div>
+      <h4>Community Links</h4>
+      <ul>
+        <li><a href="https://password-hashing.net" target="_blank" rel="noopener">Argon2 — Password Hashing Competition</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9106.html" target="_blank" rel="noopener">RFC 9106 — Argon2 Specification</a></li>
+        <li><a href="https://owasp.org/www-community/password-storage" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Lab Links</h4>
+      <ul>
+        <li><a href="theory.html">Theory</a></li>
+        <li><a href="procedure.html">Procedure</a></li>
+        <li><a href="simulation.html">Simulation</a></li>
+        <li><a href="assignment.html">Assignment</a></li>
+        <li><a href="feedback.html">Feedback</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p style="margin:0">Cryptography &amp; System Security Lab<br>
+      Department of Computer Engineering</p>
+    </div>
+  </div>
+  <div class="vlab-footer-bottom">
+    Virtual Cryptography Laboratory · Static learning portal · Educational use only.
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulation — Argon2 | Password Hashing Lab</title>
+<link rel="stylesheet" href="../css/vlab.css">
+</head>
+<body class="vlab-body">
+
+<header class="vlab-topbar">
+  <a class="vlab-logo" href="../index.html">
+    <div>
+      <span class="vlab-logo-title">Password Hashing Lab</span>
+      <span class="vlab-logo-sub">Cryptography &amp; System Security · Virtual Laboratory</span>
+    </div>
+  </a>
+  <nav class="vlab-topnav">
+    <a href="../index.html">Home</a>
+    <a href="theory.html">Theory</a>
+    <a href="simulation.html">Simulation</a>
+  </nav>
+</header>
+
+<div class="vlab-breadcrumb">
+  <a href="../index.html">Password Hashing Lab</a><span class="sep">›</span>
+  <a href="../index.html#experiments">Argon2</a><span class="sep">›</span><span class="here">Simulation</span>
+</div>
+
+<div class="vlab-layout">
+  <aside class="vlab-sidebar">
+    <div class="vlab-side-logo">EXPERIMENT 01<br>ARGON2 (ARGON2ID)</div>
+    <a href="../index.html">Introduction</a>
+    <a href="theory.html">Theory</a>
+    <a href="objective.html">Objective</a>
+    <a href="procedure.html">Procedure to be followed</a>
+    <a href="simulation.html" class="active">Simulation</a>
+    <a href="demos.html">Demonstrations</a>
+    <a href="assignment.html">Assignment</a>
+    <a href="references.html">References</a>
+    <a href="feedback.html">Feedback</a>
+  </aside>
+
+  <main class="vlab-content">
+    <h1>Simulation</h1>
+    <p>An interactive Argon2 sandbox running <b>real Argon2id/i/d in your browser</b>
+    (via the hash-wasm library). Configure the inputs and cost parameters, compute the hash,
+    verify a login, watch the memory fill, and benchmark against PBKDF2.</p>
+
+    <div class="tabbar" id="tabbar">
+      <button class="on" data-tab="hasher">Hasher</button>
+      <button data-tab="verify">Verify</button>
+      <button data-tab="memory">Memory Grid</button>
+      <button data-tab="bench">Benchmark</button>
+    </div>
+
+    <div class="tabpane on" id="pane-hasher">
+      <div class="form-grid">
+        <label for="h-password">Password</label>
+        <input type="text" id="h-password" value="hunter2" spellcheck="false">
+
+        <label for="h-salt">Salt (hex)</label>
+        <div class="range-row">
+          <input type="text" id="h-salt" style="font-family:Consolas,monospace">
+          <button class="btn secondary small" id="h-new-salt">Random</button>
+        </div>
+
+        <label for="h-variant">Variant</label>
+        <select id="h-variant">
+          <option value="argon2id" selected>Argon2id (recommended)</option>
+          <option value="argon2i">Argon2i (side-channel safe)</option>
+          <option value="argon2d">Argon2d (data-dependent)</option>
+        </select>
+
+        <label for="h-m">Memory cost m (KiB)</label>
+        <div class="range-row">
+          <input type="range" id="h-m" min="8" max="262144" step="8" value="19456">
+          <span class="range-val" id="h-m-val">19456 KiB ≈ 19 MiB</span>
+        </div>
+
+        <label for="h-t">Time cost t (passes)</label>
+        <div class="range-row">
+          <input type="range" id="h-t" min="1" max="10" step="1" value="2">
+          <span class="range-val" id="h-t-val">2</span>
+        </div>
+
+        <label for="h-p">Parallelism p (lanes)</label>
+        <div class="range-row">
+          <input type="range" id="h-p" min="1" max="4" step="1" value="1">
+          <span class="range-val" id="h-p-val">1</span>
+        </div>
+
+        <label for="h-tag">Tag length (bytes)</label>
+        <input type="number" id="h-tag" min="4" max="1024" value="32">
+
+        <label></label>
+        <div>
+          <button class="btn" id="h-compute">Compute Hash</button>
+        </div>
+      </div>
+
+      <div class="panel" id="h-result" style="display:none">
+        <h2>Result</h2>
+        <div class="stat-row">
+          <div class="stat"><div class="k">Time</div><div class="v" id="h-time">—</div></div>
+          <div class="stat"><div class="k">Memory</div><div class="v" id="h-mem">—</div></div>
+          <div class="stat"><div class="k">Variant</div><div class="v" id="h-variant-out">—</div></div>
+        </div>
+        <p style="margin-bottom:4px"><b>PHC string (store this in your database):</b></p>
+        <div class="hash-output" id="h-phc"></div>
+        <p style="margin-bottom:4px"><b>Tag (hex):</b></p>
+        <div class="hash-output" id="h-tag-hex"></div>
+        <button class="btn secondary small" id="h-to-verify">Send to Verify tab →</button>
+      </div>
+      <div class="callout warn" id="h-error" style="display:none"></div>
+    </div>
+
+    <div class="tabpane" id="pane-verify">
+      <p>Paste a PHC string — the salt, variant and cost parameters are read from the string
+      itself (exactly how a real login flow works).</p>
+      <div class="form-grid">
+        <label for="v-phc">Stored PHC string</label>
+        <textarea id="v-phc" rows="3" style="font-family:Consolas,monospace;font-size:13px"></textarea>
+
+        <label for="v-password">Password to test</label>
+        <input type="text" id="v-password" value="hunter2" spellcheck="false">
+
+        <label></label>
+        <button class="btn" id="v-check">Verify</button>
+      </div>
+      <div class="callout info" id="v-result" style="display:none"></div>
+      <div class="callout warn" id="v-error" style="display:none"></div>
+    </div>
+
+    <div class="tabpane" id="pane-memory">
+      <p>An animation of Argon2's memory fill (simplified: one 64-block array per pass, address
+      generation per variant). Grey = unwritten, blue = written (darker = later pass), yellow =
+      reference blocks, orange = block being computed.</p>
+      <div class="form-grid">
+        <label for="mg-variant">Variant</label>
+        <select id="mg-variant">
+          <option value="argon2id" selected>Argon2id</option>
+          <option value="argon2i">Argon2i</option>
+          <option value="argon2d">Argon2d</option>
+        </select>
+        <label for="mg-t">Passes (t)</label>
+        <input type="range" id="mg-t" min="1" max="4" value="2">
+        <label></label><span class="range-val" id="mg-t-val">2</span>
+      </div>
+      <div style="margin:10px 0">
+        <button class="btn" id="mg-run">Run Animation</button>
+      </div>
+      <div class="mem-grid" id="mg-grid"></div>
+      <div class="legend">
+        <span class="lg-unwritten">unwritten</span>
+        <span class="lg-ref">reference block(s)</span>
+        <span class="lg-cur">current block</span>
+        <span class="lg-p0">pass 1 written</span>
+        <span class="lg-p1">pass 2 written</span>
+        <span class="lg-p2">pass 3+ written</span>
+      </div>
+      <p class="mono" id="mg-note" style="color:var(--vlab-muted);font-size:13px"></p>
+    </div>
+
+    <div class="tabpane" id="pane-bench">
+      <p>Benchmark genuine in-browser hashing. Each configuration is hashed several times and
+      averaged; throughput ≈ 1000 / avg ms per hash.</p>
+      <div class="form-grid">
+        <label for="b-m">Argon2id memory m (KiB)</label>
+        <input type="number" id="b-m" value="19456" min="8" max="262144" step="8">
+        <label for="b-t">Argon2id time t</label>
+        <input type="number" id="b-t" value="2" min="1" max="10">
+        <label for="b-p">Argon2id lanes p</label>
+        <input type="number" id="b-p" value="1" min="1" max="4">
+        <label for="b-iters">PBKDF2 iterations</label>
+        <input type="number" id="b-iters" value="600000" min="1000" step="1000">
+        <label></label>
+        <button class="btn" id="b-run">Run Benchmark</button>
+      </div>
+      <table class="vlab-table" id="b-results" style="display:none">
+        <tr><th>Configuration</th><th>Avg time (ms)</th><th>Hashes / second</th><th>Memory</th></tr>
+      </table>
+      <div class="callout warn" id="b-error" style="display:none"></div>
+    </div>
+  </main>
+</div>
+
+<footer class="vlab-footer">
+  <div class="vlab-footer-cols">
+    <div>
+      <h4>Community Links</h4>
+      <ul>
+        <li><a href="https://password-hashing.net" target="_blank" rel="noopener">Argon2 — Password Hashing Competition</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9106.html" target="_blank" rel="noopener">RFC 9106 — Argon2 Specification</a></li>
+        <li><a href="https://owasp.org/www-community/password-storage" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Lab Links</h4>
+      <ul>
+        <li><a href="theory.html">Theory</a></li>
+        <li><a href="procedure.html">Procedure</a></li>
+        <li><a href="simulation.html">Simulation</a></li>
+        <li><a href="assignment.html">Assignment</a></li>
+        <li><a href="feedback.html">Feedback</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p style="margin:0">Cryptography &amp; System Security Lab<br>
+      Department of Computer Engineering</p>
+    </div>
+  </div>
+  <div class="vlab-footer-bottom">
+    Virtual Cryptography Laboratory · Static learning portal · Educational use only.
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/hash-wasm@4.11.0/dist/argon2.umd.min.js"></script>
+<script src="../js/argon2-lab.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Objective — Argon2 | Password Hashing Lab</title>
+<link rel="stylesheet" href="../css/vlab.css">
+</head>
+<body class="vlab-body">
+
+<header class="vlab-topbar">
+  <a class="vlab-logo" href="../index.html">
+    <div>
+      <span class="vlab-logo-title">Password Hashing Lab</span>
+      <span class="vlab-logo-sub">Cryptography &amp; System Security · Virtual Laboratory</span>
+    </div>
+  </a>
+  <nav class="vlab-topnav">
+    <a href="../index.html">Home</a>
+    <a href="theory.html">Theory</a>
+    <a href="simulation.html">Simulation</a>
+  </nav>
+</header>
+
+<div class="vlab-breadcrumb">
+  <a href="../index.html">Password Hashing Lab</a><span class="sep">›</span>
+  <a href="../index.html#experiments">Argon2</a><span class="sep">›</span><span class="here">Objective</span>
+</div>
+
+<div class="vlab-layout">
+  <aside class="vlab-sidebar">
+    <div class="vlab-side-logo">EXPERIMENT 01<br>ARGON2 (ARGON2ID)</div>
+    <a href="../index.html">Introduction</a>
+    <a href="theory.html">Theory</a>
+    <a href="objective.html" class="active">Objective</a>
+    <a href="procedure.html">Procedure to be followed</a>
+    <a href="simulation.html">Simulation</a>
+    <a href="demos.html">Demonstrations</a>
+    <a href="assignment.html">Assignment</a>
+    <a href="references.html">References</a>
+    <a href="feedback.html">Feedback</a>
+  </aside>
+
+  <main class="vlab-content">
+    <h1>Objective</h1>
+    <p>After performing the experiment, the student will be able to:</p>
+    <ol>
+      <li><b>Explain</b> why fast hashes (MD5, SHA-256) are unsuitable for password storage and how
+          offline dictionary/rainbow-table attacks exploit their speed.</li>
+      <li><b>Describe</b> Argon2's memory-hard design: the BLAKE2b-based compression function G,
+          1024-byte blocks, lanes, slices and passes, and data-dependent vs data-independent
+          reference addressing.</li>
+      <li><b>Configure</b> the three cost parameters — memory cost <i>m</i>, time cost <i>t</i>,
+          parallelism <i>p</i> — and reason about the security/usability trade-off of each.</li>
+      <li><b>Demonstrate</b> the role of the salt by comparing salted and unsalted hashing against a
+          simulated rainbow-table attack.</li>
+      <li><b>Benchmark</b> real in-browser hashing times for Argon2id vs PBKDF2 and select
+          parameters that hit a target time budget (e.g. OWASP's interactive-login guidance).</li>
+    </ol>
+    <p>These outcomes map to <a href="theory.html">Theory</a> §1–6, the steps in the
+    <a href="procedure.html">Procedure</a>, and the exercises in the
+    <a href="simulation.html">Simulation</a> and <a href="assignment.html">Assignment</a>.</p>
+  </main>
+</div>
+
+<footer class="vlab-footer">
+  <div class="vlab-footer-cols">
+    <div>
+      <h4>Community Links</h4>
+      <ul>
+        <li><a href="https://password-hashing.net" target="_blank" rel="noopener">Argon2 — Password Hashing Competition</a></li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9106.html" target="_blank" rel="noopener">RFC 9106 — Argon2 Specification</a></li>
+        <li><a href="https://owasp.org/www-community/password-storage" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Lab Links</h4>
+      <ul>
+        <li><a href="theory.html">Theory</a></li>
+        <li><a href="procedure.html">Procedure</a></li>
+        <li><a href="simulation.html">Simulation</a></li>
+        <li><a href="assignment.html">Assignment</a></li>
+        <li><a href="feedback.html">Feedback</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p style="margin:0">Cryptography &amp; System Security Lab<br>
+      Department of Computer Engineering</p>
+    </div>
+  </div>
+  <div class="vlab-footer-bottom">
+    Virtual Cryptography Laboratory · Static learning portal · Educational use only.
+  </div>
+</footer>
+
+</body>
+</html>
